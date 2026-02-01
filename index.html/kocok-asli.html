@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIVE - Arisan UGM (Auto)</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #FF4785; 
+            --primary-gradient: linear-gradient(135deg, #FF4785 0%, #FF8EB3 100%);
+            --secondary: #6C5DD3;
+            --bg-body: #F9FAFB;
+            --surface: rgba(255, 255, 255, 0.85);
+            --text-main: #111827;
+            --text-muted: #6B7280;
+            --border: #E5E7EB;
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --shadow-glow: 0 0 20px rgba(255, 71, 133, 0.2);
+            --danger: #EF4444;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at 50% 0%, #fff1f2 0%, #F9FAFB 70%);
+            color: var(--text-main);
+            margin: 0; padding: 0; min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px; margin: 0 auto; padding: 20px; text-align: center;
+        }
+
+        /* --- HEADER --- */
+        .top-nav {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;
+        }
+
+        .logo-text {
+            font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700;
+            color: var(--text-main); text-shadow: 2px 2px 0px white;
+        }
+        .logo-text span { color: var(--primary); }
+
+        .btn-back-nav {
+            background: white; border: 1px solid var(--border); padding: 8px 16px;
+            border-radius: 50px; text-decoration: none; color: var(--text-main); font-size: 0.9rem; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+        }
+        .btn-back-nav:hover { border-color: var(--primary); color: var(--primary); transform: translateX(-3px); }
+
+        .status-group { text-align: right; }
+        .live-badge {
+            background: #EF4444; color: white; padding: 5px 12px; border-radius: 20px;
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); animation: pulse 2s infinite;
+            display: inline-block;
+        }
+        .period-badge {
+            font-size: 0.75rem; color: var(--text-muted); font-weight: 700; 
+            margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        @keyframes pulse { 0% {opacity: 1;} 50% {opacity: 0.7;} 100% {opacity: 1;} }
+
+        /* --- LAYOUT GRID --- */
+        .game-layout {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;
+        }
+        @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+
+        /* --- GLASS CARD --- */
+        .glass-card {
+            background: var(--surface);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid white; border-radius: 24px; padding: 24px;
+            box-shadow: var(--shadow-lg); position: relative;
+        }
+
+        /* --- MONITOR --- */
+        .monitor-card {
+            background: linear-gradient(135deg, #ffffff 0%, #fff1f2 100%);
+            border: 2px solid #FBCFE8; 
+            min-height: 160px; display: flex; flex-direction: column; justify-content: center;
+            position: relative; overflow: hidden; margin-bottom: 20px;
+        }
+        
+        .monitor-label {
+            font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; font-weight: 700;
+            position: absolute; top: 15px; left: 20px; text-transform: uppercase;
+        }
+
+        #active-name-display {
+            font-size: 2.2rem; font-weight: 800;
+            background: linear-gradient(135deg, #DB2777 0%, #F59E0B 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-top: 10px; padding: 0 10px;
+        }
+
+        #active-detail-display { font-size: 1rem; color: var(--text-muted); font-weight: 500; margin-top: 5px; }
+
+        /* --- WHEEL --- */
+        .wheel-wrapper {
+            position: relative; width: 100%; display: flex; justify-content: center; margin: 20px 0;
+        }
+        .wheel-container {
+            position: relative; width: 320px; height: 320px;
+            max-width: 100%; aspect-ratio: 1/1; 
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));
+        }
+        
+        canvas {
+            width: 100%; height: 100%; border-radius: 50%;
+            border: 6px solid white;
+        }
+
+        .arrow {
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            width: 40px; height: 50px;
+            background: var(--primary); clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        /* --- BUTTONS --- */
+        .btn-spin-main {
+            background: var(--primary-gradient);
+            color: white; border: none; padding: 18px; width: 100%;
+            border-radius: 16px; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; box-shadow: var(--shadow-glow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-spin-main:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 71, 133, 0.4); }
+        .btn-spin-main:active { transform: scale(0.98); }
+        .btn-spin-main:disabled { background: #E5E7EB; color: #9CA3AF; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        /* --- TABS --- */
+        .tabs-container {
+            display: flex; background: #F3F4F6; padding: 5px; border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1; padding: 10px; border: none; background: transparent;
+            border-radius: 8px; font-weight: 600; color: var(--text-muted); cursor: pointer;
+            transition: all 0.3s; font-size: 0.9rem;
+        }
+
+        .tab-btn.active-won { background: white; color: #059669; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .tab-btn.active-pending { background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        /* --- LIST --- */
+        .list-section { display: none; animation: fadeIn 0.3s ease; }
+        .list-section.active { display: block; }
+        @keyframes fadeIn { from {opacity: 0; transform: translateY(5px);} to {opacity: 1; transform: translateY(0);} }
+
+        .scroll-area {
+            max-height: 500px; overflow-y: auto; padding-right: 5px; text-align: left;
+        }
+        .scroll-area::-webkit-scrollbar { width: 5px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+
+        .participant-row {
+            background: white; margin-bottom: 10px; padding: 14px; border-radius: 12px;
+            display: flex; align-items: center; gap: 14px; border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+        .participant-row:hover { transform: translateX(4px); border-color: #FBCFE8; }
+        
+        .avatar {
+            width: 36px; height: 36px; background: #F3F4F6; color: var(--text-muted);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+        }
+
+        .row-pending .avatar { background: linear-gradient(135deg, #FBCFE8, #EC4899); color: white; }
+        .row-winner { background: #ECFDF5; border-color: #D1FAE5; }
+        .row-winner .avatar { background: linear-gradient(135deg, #34D399, #10B981); color: white; }
+
+        .btn-delete {
+            margin-left: auto; background: white; color: #EF4444; border: 1px solid #FEE2E2;
+            width: 30px; height: 30px; border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .btn-delete:hover { background: #EF4444; color: white; }
+
+        /* --- MODALS --- */
+        #winner-modal, #delete-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 2000; display: none;
+            justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-box {
+            background: white; padding: 40px; border-radius: 30px; text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); width: 90%; max-width: 400px;
+            animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;
+        }
+        @keyframes popUp { 0% {transform: scale(0.8) translateY(20px); opacity: 0;} 100% {transform: scale(1) translateY(0); opacity: 1;} }
+
+        .trophy-anim { font-size: 3rem; color: #F59E0B; margin-bottom: 15px; animation: float 3s infinite ease-in-out; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* Delete Modal Specifics */
+        .warning-icon {
+            font-size: 3rem; color: var(--danger); margin-bottom: 15px;
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+        
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .btn-cancel {
+            background: #F3F4F6; color: var(--text-main); border: none; padding: 12px 24px;
+            border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .btn-cancel:hover { background: #E5E7EB; }
+        .btn-confirm-delete {
+            background: var(--danger); color: white; border: none; padding: 12px 24px;
+            border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+        }
+        .btn-confirm-delete:hover { background: #DC2626; transform: translateY(-2px); }
+
+    </style>
+</head>
+<body>
+
+    <audio id="spin-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_736f99c67b.mp3"></audio> 
+    <audio id="win-sound" src="https://cdn.pixabay.com/audio/2021/08/04/audio_0625c153e2.mp3"></audio>
+
+    <div class="container">
+        <div class="top-nav">
+            <a href="index.html" class="btn-back-nav">
+                <i class="fa-solid fa-arrow-left"></i> Kembali
+            </a>
+            <div class="logo-text">Arisan<span>UGM</span></div>
+            <div class="status-group">
+                <div class="live-badge">LIVE</div>
+                <div class="period-badge" id="period-display">PERIODE: ...</div>
+            </div>
+        </div>
+
+        <div class="game-layout">
+            
+            <div class="col-main">
+                <div class="glass-card monitor-card">
+                    <div class="monitor-label"><i class="fa-solid fa-tv"></i> LIVE DRAW</div>
+                    <div id="active-name-display">XXXX</div>
+                    <div id="active-detail-display">Menunggu putaran...</div>
+                </div>
+
+                <div class="glass-card" style="text-align:center; padding-bottom:30px;">
+                    <div class="wheel-wrapper">
+                        <div class="wheel-container">
+                            <div class="arrow"></div>
+                            <canvas id="wheelCanvas" width="320" height="320"></canvas>
+                        </div>
+                    </div>
+                    
+                    <button id="spin-btn" class="btn-spin-main" onclick="spinWheel()">
+                        <span>PUTAR SEKARANG</span> <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-list">
+                <div class="glass-card">
+                    
+                    <div class="tabs-container">
+                        <button class="tab-btn" id="tab-won" onclick="switchTab('won')">
+                            🏆 Pemenang (<span id="cnt-won">0</span>)
+                        </button>
+                        <button class="tab-btn active-pending" id="tab-pending" onclick="switchTab('pending')">
+                            ⏳ Antrian (<span id="cnt-pending">0</span>)
+                        </button>
+                    </div>
+
+                    <div id="view-pending" class="list-section active">
+                        <div id="list-pending-container" class="scroll-area">
+                            <div style="text-align:center; padding:20px; color:#9CA3AF;">Memuat data...</div>
+                        </div>
+                    </div>
+
+                    <div id="view-won" class="list-section">
+                        <div id="list-won-container" class="scroll-area">
+                            <div style="text-align:center; padding:20px; color:#9CA3AF;">Belum ada pemenang</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="winner-modal">
+        <div class="modal-box">
+            <div class="trophy-anim"><i class="fa-solid fa-trophy"></i></div>
+            <h3 style="color:#6B7280; margin:0; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">Selamat Kepada</h3>
+            <h1 id="modal-name" style="font-family:'Playfair Display', serif; font-size:2rem; color:var(--text-main); margin:10px 0;">Nama Pemenang</h1>
+            <p id="modal-detail" style="color:#EF4444; font-weight:600;">Detail</p>
+            <button class="btn-spin-main" onclick="closeModal()">Lanjut Kocok <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <div id="delete-modal">
+        <div class="modal-box">
+            <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 style="color:#1F2937; margin:0 0 10px 0; font-size:1.2rem; font-weight:700;">Hapus Pemenang?</h3>
+            <p style="color:#6B7280; font-size:0.9rem; margin-bottom:20px;">Data kemenangan akan dihapus dan nama ini akan kembali ke antrian kocokan.</p>
+            
+            <div class="btn-group">
+                <button class="btn-cancel" onclick="closeDeleteModal()">Batal</button>
+                <button class="btn-confirm-delete" onclick="confirmDelete()">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8rMfcf-jSO8t8T145m6vnZQq-pFjtXjI",
+            authDomain: "billy-d4379.firebaseapp.com",
+            projectId: "billy-d4379",
+            storageBucket: "billy-d4379.firebasestorage.app",
+            messagingSenderId: "68495109677",
+            appId: "1:68495109677:web:ad1d20544dcbd0b71a52a4",
+            measurementId: "G-L8JMKLVPQ9",
+            databaseURL: "https://billy-d4379-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentParticipants = [];
+        let isSpinning = false;
+        let winnerToDeleteKey = null;
+        let allParticipantsMap = {}; 
+        let winnersMap = {};         
+        let activePeriod = '';       
+        
+        // Canvas & Vars
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        let startAngle = 0;
+        let arc = 0;
+        let spinTimeout = null;
+        let spinAngleStart = 0;
+        let spinTime = 0;
+        let spinTimeTotal = 0;
+        let previousIndex = -1; 
+
+        // --- AUDIO UNLOCKER ---
+        document.body.addEventListener('click', () => {
+            const s1 = document.getElementById('spin-sound');
+            const s2 = document.getElementById('win-sound');
+            if(s1.readyState === 0) s1.load();
+            if(s2.readyState === 0) s2.load();
+        }, { once: true });
+
+        // --- 2. TABS ---
+        function switchTab(tab) {
+            document.querySelectorAll('.list-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.className = 'tab-btn');
+            document.getElementById('view-' + tab).classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active-' + tab);
+        }
+
+        // --- 3. DATA LOGIC (SYNCHRONIZATION CORE) ---
+        function getActivePeriod() {
+            // STEP 1: Cek URL parameter dulu (Prioritas untuk Admin/Redirect)
+            // Admin Panel mengirim: kocok-asli.html?period=mar_2026
+            const urlParams = new URLSearchParams(window.location.search);
+            const manualPeriod = urlParams.get('period');
+            
+            if (manualPeriod) return manualPeriod;
+
+            // STEP 2: Jika tidak ada URL, pakai tanggal hari ini (Fallback)
+            const months = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'];
+            const now = new Date();
+            const m = months[now.getMonth()];
+            const y = now.getFullYear();
+            return `${m}_${y}`; // Contoh: feb_2026
+        }
+
+        // Helper untuk memformat nama periode biar cantik (jan_2026 -> JANUARI 2026)
+        function formatPeriodName(key) {
+            const [month, year] = key.split('_');
+            const months = {jan:'JANUARI', feb:'FEBRUARI', mar:'MARET', apr:'APRIL', mei:'MEI', jun:'JUNI', jul:'JULI', agu:'AGUSTUS', sep:'SEPTEMBER', okt:'OKTOBER', nov:'NOVEMBER', des:'DESEMBER'};
+            return `${months[month] || month.toUpperCase()} ${year}`;
+        }
+
+        function loadData() {
+            // 1. Ambil ID Periode
+            activePeriod = getActivePeriod();
+            
+            // 2. Ubah jadi teks cantik
+            const prettyPeriod = formatPeriodName(activePeriod);
+            
+            // 3. Tampilkan di Badge Pojok Kanan Atas
+            document.getElementById('period-display').innerText = `PERIODE: ${prettyPeriod}`;
+
+            // 4. Tarik data dari Firebase SESUAI ID Periode
+            const participantsRef = db.ref('participants/' + activePeriod);
+            const winnersRef = db.ref('arisan_' + activePeriod + '/winners');
+
+            // Listener 1: Ambil data peserta
+            participantsRef.on('value', (snap) => {
+                allParticipantsMap = snap.val() || {};
+                recalcWheel();
+            });
+
+            // Listener 2: Ambil data pemenang
+            winnersRef.on('value', (snap) => {
+                winnersMap = snap.val() || {};
+                recalcWheel();
+            });
+        }
+
+        function recalcWheel() {
+            // 1. Olah Data Pemenang
+            const winnersArr = Object.entries(winnersMap).map(([k, v]) => ({ key: k, ...v }));
+            const winnerIds = winnersArr.map(w => w.id);
+
+            // 2. Olah Data Peserta & Filter
+            const allParticipants = Object.entries(allParticipantsMap).map(([key, val]) => ({
+                id: key, 
+                name: val.name,
+                detail: (val.child ? val.child + ' | ' : '') + 'Rp ' + val.nominal,
+                status: val.status
+            }));
+
+            // FILTER: Harus Lunas & Belum Menang
+            currentParticipants = allParticipants
+                .filter(p => p.status === 'lunas')
+                .filter(p => !winnerIds.includes(p.id));
+
+            // Update UI Counters
+            document.getElementById('cnt-pending').innerText = currentParticipants.length;
+            document.getElementById('cnt-won').innerText = winnersArr.length;
+            
+            // Render UI
+            renderPending();
+            renderWon(winnersArr);
+            drawWheel(); 
+            
+            // Logic Status Layar (Smart Status)
+            if(currentParticipants.length === 0 && !isSpinning) {
+                if (allParticipants.length === 0) {
+                    document.getElementById('active-name-display').innerText = "KOSONG";
+                    document.getElementById('active-detail-display').innerText = "Belum ada data periode ini";
+                    document.getElementById('spin-btn').disabled = true;
+                    document.getElementById('spin-btn').innerText = "DATABASE KOSONG";
+                } else if (winnersArr.length >= allParticipants.filter(p => p.status === 'lunas').length && allParticipants.some(p => p.status === 'lunas')) {
+                    document.getElementById('active-name-display').innerText = "SELESAI";
+                    document.getElementById('spin-btn').disabled = true;
+                    document.getElementById('spin-btn').innerText = "ARISAN TUNTAS";
+                } else {
+                    document.getElementById('active-name-display').innerText = "MENUNGGU";
+                    document.getElementById('active-detail-display').innerText = "Menunggu pembayaran peserta...";
+                    document.getElementById('spin-btn').disabled = true;
+                    document.getElementById('spin-btn').innerText = "BELUM ADA PESERTA LUNAS";
+                }
+            } else if (!isSpinning) {
+                document.getElementById('spin-btn').disabled = false;
+                document.getElementById('spin-btn').innerHTML = `<span>PUTAR SEKARANG</span> <i class="fa-solid fa-rotate-right"></i>`;
+                if(document.getElementById('active-name-display').innerText === "KOSONG" || 
+                   document.getElementById('active-name-display').innerText === "SELESAI" ||
+                   document.getElementById('active-name-display').innerText === "MENUNGGU") {
+                     document.getElementById('active-name-display').innerText = "XXXX";
+                     document.getElementById('active-detail-display').innerText = "Siap putar...";
+                }
+            }
+        }
+
+        function renderPending() {
+            const el = document.getElementById('list-pending-container');
+            if(currentParticipants.length === 0) {
+                el.innerHTML='<div style="text-align:center; padding:30px; color:#9CA3AF;">Tidak ada antrian lunas.</div>'; 
+                return; 
+            }
+            let html = '';
+            currentParticipants.forEach((p, idx) => {
+                html += `
+                <div class="participant-row row-pending">
+                    <div class="avatar">${idx+1}</div>
+                    <div style="flex-grow:1;">
+                        <strong style="display:block; font-size:0.9rem; color:#1F2937;">${p.name}</strong>
+                        <small style="color:#6B7280; font-size:0.75rem;">${p.detail}</small>
+                    </div>
+                </div>`;
+            });
+            el.innerHTML = html;
+        }
+
+        function renderWon(winners) {
+            const el = document.getElementById('list-won-container');
+            if(winners.length === 0) { 
+                el.innerHTML='<div style="text-align:center; padding:30px; color:#9CA3AF;">Belum ada pemenang.<br>Putar rodanya sekarang!</div>'; 
+                return; 
+            }
+            let html = '';
+            [...winners].reverse().forEach(w => {
+                html += `
+                <div class="participant-row row-winner">
+                    <div class="avatar"><i class="fa-solid fa-trophy"></i></div>
+                    <div style="flex-grow:1;">
+                        <strong style="display:block; font-size:0.9rem; color:#064E3B;">${w.name}</strong>
+                        <small style="color:#059669; font-size:0.75rem;">${w.timestamp}</small>
+                    </div>
+                    <button class="btn-delete" onclick="delWinner('${w.key}')" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                </div>`;
+            });
+            el.innerHTML = html;
+        }
+
+        // DELETE LOGIC
+        function delWinner(key) {
+            winnerToDeleteKey = key;
+            document.getElementById('delete-modal').style.display = 'flex';
+        }
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'none';
+            winnerToDeleteKey = null;
+        }
+        function confirmDelete() {
+            if(winnerToDeleteKey) {
+                // Hapus winner dari periode yang sedang aktif (URL)
+                db.ref(`arisan_${activePeriod}/winners/${winnerToDeleteKey}`).remove()
+                .then(() => closeDeleteModal())
+                .catch(err => alert(err.message));
+            }
+        }
+
+        // --- 4. WHEEL LOGIC ---
+        function drawWheel() {
+            if (currentParticipants.length === 0) { ctx.clearRect(0,0,320,320); return; }
+            
+            arc = Math.PI * 2 / currentParticipants.length;
+            ctx.clearRect(0,0,320,320);
+            const colors = ["#F472B6", "#FB7185", "#F9A8D4", "#FCD34D", "#A78BFA"];
+
+            for(let i = 0; i < currentParticipants.length; i++) {
+                const angle = startAngle + i * arc;
+                ctx.fillStyle = colors[i % colors.length];
+                
+                ctx.beginPath();
+                ctx.arc(160, 160, 150, angle, angle + arc, false); 
+                ctx.arc(160, 160, 0, angle + arc, angle, true);
+                ctx.fill();
+                
+                ctx.save();
+                ctx.fillStyle = "#fff";
+                ctx.translate(160 + Math.cos(angle + arc / 2) * 120, 160 + Math.sin(angle + arc / 2) * 120);
+                ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                ctx.font = 'bold 13px "Plus Jakarta Sans"';
+                ctx.shadowColor="rgba(0,0,0,0.1)"; ctx.shadowBlur=2;
+                ctx.fillText((i+1).toString(), -ctx.measureText((i+1).toString()).width/2, 0);
+                ctx.restore();
+            }
+        }
+
+        function spinWheel() {
+            if(isSpinning || currentParticipants.length === 0) return;
+            isSpinning = true;
+            spinAngleStart = Math.random() * 0 + 50;
+            spinTime = 0;
+            spinTimeTotal = Math.random() * 9000 + 10000;
+            previousIndex = -1;
+            rotateWheel();
+        }
+
+        function rotateWheel() {
+            spinTime += 30;
+            if(spinTime >= spinTimeTotal) { stopRotate(); return; }
+            
+            const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
+            startAngle += (spinAngle * Math.PI / 180);
+            drawWheel();
+            
+            const currentIndex = getIndexAtArrow();
+            if (previousIndex !== -1 && currentIndex !== previousIndex) {
+                const tick = document.getElementById('spin-sound');
+                tick.pause();
+                tick.currentTime = 0;
+                tick.volume = Math.max(0.2, 0.6 * (1 - spinTime / spinTimeTotal)); 
+                tick.play().catch(()=>{}); 
+            }
+            previousIndex = currentIndex;
+
+            updateMonitor();
+            spinTimeout = setTimeout(rotateWheel, 30);
+        }
+
+        function stopRotate() {
+            isSpinning = false;
+            const winner = currentParticipants[getIndexAtArrow()];
+            const now = new Date();
+            
+            // Simpan ke path winners yang sesuai periode aktif
+            db.ref(`arisan_${activePeriod}/winners`).push().set({
+                id: winner.id, 
+                name: winner.name, 
+                detail: winner.detail,
+                timestamp: now.toLocaleString('id-ID'), 
+                day: now.toLocaleDateString('id-ID',{weekday:'long'})
+            });
+            
+            showModal(winner);
+        }
+
+        function getIndexAtArrow() {
+            const degrees = startAngle * 180 / Math.PI + 90;
+            const arcd = 360 / currentParticipants.length;
+            const index = Math.floor((360 - degrees % 360) / arcd);
+            return index;
+        }
+
+        function updateMonitor() {
+            if(currentParticipants.length===0) return;
+            const p = currentParticipants[getIndexAtArrow()];
+            document.getElementById('active-name-display').innerText = p.name;
+            document.getElementById('active-detail-display').innerText = p.detail;
+        }
+
+        function easeOut(t, b, c, d) { return c * ((t=t/d-1)*t*t + 1) + b; }
+
+        function showModal(w) {
+            document.getElementById('modal-name').innerText = w.name;
+            document.getElementById('modal-detail').innerText = w.detail;
+            document.getElementById('winner-modal').style.display = 'flex';
+            const winAudio = document.getElementById('win-sound');
+            winAudio.currentTime = 0; winAudio.volume = 1.0; winAudio.play().catch(()=>{});
+            confetti({particleCount: 200, spread: 90, origin: { y: 0.6 }, colors:['#FF4785', '#F59E0B']});
+        }
+
+        function closeModal() {
+            document.getElementById('winner-modal').style.display = 'none';
+            switchTab('won');
+            document.getElementById('active-name-display').innerText = "XXXX";
+            document.getElementById('active-detail-display').innerText = "Siap putar lagi...";
+        }
+
+        window.onload = function() { setTimeout(loadData, 500); }
+    </script>
+</body>
+</html>
