@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Area - Arisan UGM</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Pacifico&family=Courier+Prime&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #FF4785;
+            --primary-gradient: linear-gradient(135deg, #FF4785 0%, #FF8EB3 100%);
+            --secondary: #6C5DD3;
+            --bg-body: #F9FAFB;
+            --surface: #FFFFFF;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            --success: #10B981;
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-body); color: var(--text-main);
+            margin: 0; padding: 0; min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* NAVBAR */
+        nav {
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #eee;
+        }
+        .brand { font-family: 'Pacifico', cursive; color: var(--primary); font-size: 1.2rem; }
+        .btn-logout { background: #fee2e2; color: #ef4444; border:none; padding:8px 15px; border-radius:20px; font-weight:700; cursor:pointer; font-size:0.8rem; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+
+        /* AVATAR STUDIO */
+        .avatar-section {
+            background: white; border-radius: 24px; padding: 30px; text-align: center;
+            box-shadow: var(--shadow-lg); margin-bottom: 25px; position: relative; overflow: hidden;
+        }
+        .avatar-section::before {
+            content:''; position: absolute; top:0; left:0; width:100%; height:80px;
+            background: var(--primary-gradient); z-index: 0;
+        }
+        
+        .avatar-preview {
+            width: 140px; height: 140px; background: white; border-radius: 50%;
+            margin: 0 auto 15px; position: relative; z-index: 1;
+            border: 4px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .avatar-img { width: 100%; height: 100%; object-fit: cover; }
+
+        .welcome-text { margin-bottom: 20px; position: relative; z-index: 1; }
+        .welcome-text h2 { margin: 0; font-size: 1.5rem; }
+        .welcome-text p { color: var(--text-muted); margin: 5px 0 0; font-size: 0.9rem; }
+
+        .customizer-controls {
+            display: flex; justify-content: center; gap: 10px; margin-top: 15px;
+        }
+        .btn-dice {
+            background: #F3F4F6; border: none; width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            color: var(--text-main); cursor: pointer; transition: 0.2s;
+        }
+        .btn-dice:hover { background: var(--secondary); color: white; transform: rotate(180deg); }
+        .btn-save-avatar {
+            background: var(--primary); color: white; border: none; padding: 0 20px;
+            border-radius: 20px; font-weight: 600; cursor: pointer;
+        }
+
+        /* LINK PROFILE CARD */
+        .link-card {
+            background: white; padding: 20px; border-radius: 20px; border: 1px solid #e5e7eb;
+            margin-bottom: 25px; text-align: center;
+        }
+        select {
+            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd;
+            margin: 10px 0; font-family: inherit; font-size: 1rem;
+        }
+
+        /* MEMBER ID CARD (DIGITAL) */
+        .member-card {
+            background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+            color: white; border-radius: 20px; padding: 25px;
+            position: relative; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            margin-bottom: 25px; display: none; /* Hidden until linked */
+        }
+        .member-card::after {
+            content:''; position: absolute; top:-50%; right:-50%; width:200px; height:200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+            border-radius: 50%; pointer-events: none;
+        }
+        
+        .mc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+        .mc-logo { font-family: 'Pacifico', cursive; font-size: 1.2rem; color: var(--primary); }
+        .mc-chip { width: 40px; height: 28px; background: linear-gradient(135deg, #FFD700, #F59E0B); border-radius: 6px; }
+        
+        .mc-number { font-family: 'Courier Prime', monospace; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 5px; }
+        .mc-label { font-size: 0.65rem; text-transform: uppercase; opacity: 0.7; letter-spacing: 1px; }
+        
+        .mc-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; }
+        .mc-name { font-weight: 700; font-size: 1rem; text-transform: uppercase; }
+
+        /* INSIGHT STATS */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; display: none; }
+        .stat-box {
+            background: white; padding: 20px; border-radius: 16px; border: 1px solid #f3f4f6;
+            text-align: center;
+        }
+        .stat-icon {
+            width: 40px; height: 40px; border-radius: 10px; background: #fdf2f8; color: var(--primary);
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 1.2rem;
+        }
+        .stat-val { font-size: 1.2rem; font-weight: 800; color: var(--text-main); }
+        .stat-lbl { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+
+        .badge-lunas {
+            display: inline-block; background: #d1fae5; color: #065f46;
+            padding: 5px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700;
+            margin-top: 10px;
+        }
+        .badge-pending {
+            display: inline-block; background: #fee2e2; color: #991b1b;
+            padding: 5px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700;
+            margin-top: 10px;
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed; inset:0; background: white; z-index: 999;
+            display: flex; justify-content: center; align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loading-overlay" id="globalLoader">
+        <i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem; color:var(--primary);"></i>
+    </div>
+
+    <nav>
+        <div class="brand">ArisanUGM</div>
+        <button class="btn-logout" onclick="logout()">LOGOUT</button>
+    </nav>
+
+    <div class="container">
+        
+        <!-- 1. AVATAR STUDIO -->
+        <section class="avatar-section">
+            <div class="avatar-preview">
+                <img id="myAvatar" class="avatar-img" src="" alt="Avatar">
+            </div>
+            
+            <div class="welcome-text">
+                <h2 id="greetName">Hai, Bunda!</h2>
+                <p>Kustomisasi avatar unikmu di sini</p>
+            </div>
+
+            <div class="customizer-controls">
+                <button class="btn-dice" onclick="randomizeAvatar()" title="Acak Gaya">
+                    <i class="fa-solid fa-dice"></i>
+                </button>
+                <button class="btn-save-avatar" onclick="saveAvatar()">
+                    Simpan Gaya
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. LINK PROFILE (Jika belum pilih nama) -->
+        <section class="link-card" id="linkSection">
+            <h3 style="margin-top:0;">Siapa Nama Anda?</h3>
+            <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Pilih nama yang terdaftar untuk melihat kartu anggota & status pembayaran.</p>
+            
+            <select id="memberSelect">
+                <option value="">-- Pilih Nama --</option>
+                <!-- Diisi via JS -->
+            </select>
+            <button onclick="linkProfile()" class="btn-save-avatar" style="width:100%; padding:12px; margin-top:10px;">
+                Konfirmasi Profil
+            </button>
+        </section>
+
+        <!-- 3. MEMBER CARD (Muncul setelah link) -->
+        <div class="member-card" id="digitalCard">
+            <div class="mc-header">
+                <div class="mc-logo">Member Card</div>
+                <div class="mc-chip"></div>
+            </div>
+            <div>
+                <div class="mc-number" id="cardId">000</div>
+                <div class="mc-label">NOMOR ANGGOTA</div>
+            </div>
+            <div class="mc-footer">
+                <div>
+                    <div class="mc-label">NAMA</div>
+                    <div class="mc-name" id="cardName">NAMA ANDA</div>
+                </div>
+                <div>
+                    <div class="mc-label">STATUS</div>
+                    <div id="cardStatus" class="badge-lunas">LUNAS</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. INSIGHTS -->
+        <div class="stats-grid" id="insightStats">
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+                <div class="stat-lbl">SETORAN ARISAN</div>
+                <div class="stat-val" id="dispArisan">-</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fa-solid fa-piggy-bank"></i></div>
+                <div class="stat-lbl">TABUNGAN</div>
+                <div class="stat-val" id="dispTabungan">-</div>
+            </div>
+        </div>
+
+        <div style="text-align:center; margin-top:30px; font-size:0.8rem; color:#999;">
+            <a href="index.html" style="color:var(--primary); text-decoration:none;">Kembali ke Halaman Utama</a>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8rMfcf-jSO8t8T145m6vnZQq-pFjtXjI",
+            authDomain: "billy-d4379.firebaseapp.com",
+            projectId: "billy-d4379",
+            storageBucket: "billy-d4379.firebasestorage.app",
+            messagingSenderId: "68495109677",
+            appId: "1:68495109677:web:ad1d20544dcbd0b71a52a4",
+            measurementId: "G-L8JMKLVPQ9",
+            databaseURL: "https://billy-d4379-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+        
+        // Cek inisialisasi agar tidak double
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        let currentSeed = Math.random().toString(36).substring(7);
+        let membersData = []; 
+
+        // --- AUTH ---
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                // Gunakan replace untuk menghindari history loop, dan path relatif aman
+                window.location.replace("./index.html"); 
+            } else {
+                initMemberPage(user);
+            }
+        });
+
+        function logout() {
+            auth.signOut().then(() => window.location.replace("./index.html"));
+        }
+
+        // --- AVATAR ENGINE ---
+        function updateAvatarDisplay() {
+            // Encode warna untuk keamanan URL
+            const bgColor = encodeURIComponent("b6e3f4,c0aede,d1d4f9");
+            const url = `https://api.dicebear.com/7.x/adventurer/svg?seed=${currentSeed}&backgroundColor=${bgColor}`;
+            document.getElementById('myAvatar').src = url;
+        }
+
+        function randomizeAvatar() {
+            currentSeed = Math.random().toString(36).substring(7);
+            updateAvatarDisplay();
+        }
+
+        function saveAvatar() {
+            localStorage.setItem('arisan_avatar_seed', currentSeed);
+            alert("Gaya avatar tersimpan! Kece banget! 😎");
+        }
+
+        // --- DATA LOGIC ---
+        function initMemberPage(user) {
+            // 1. Load Avatar
+            const savedSeed = localStorage.getItem('arisan_avatar_seed');
+            if(savedSeed) currentSeed = savedSeed;
+            updateAvatarDisplay();
+
+            // 2. Load Data Peserta
+            db.ref('participants/jan_2026').once('value', snap => {
+                const data = snap.val();
+                const loader = document.getElementById('globalLoader');
+                if(loader) loader.style.display = 'none';
+
+                if(data) {
+                    membersData = Object.values(data);
+                    populateSelect();
+                    checkLinkedProfile();
+                }
+            });
+        }
+
+        function populateSelect() {
+            const select = document.getElementById('memberSelect');
+            membersData.forEach((p, index) => {
+                const opt = document.createElement('option');
+                opt.value = index; 
+                opt.innerText = p.name;
+                select.appendChild(opt);
+            });
+        }
+
+        function checkLinkedProfile() {
+            const linkedIndex = localStorage.getItem('arisan_linked_index');
+            if(linkedIndex !== null) {
+                renderProfile(parseInt(linkedIndex));
+                document.getElementById('linkSection').style.display = 'none';
+                document.getElementById('digitalCard').style.display = 'block';
+                document.getElementById('insightStats').style.display = 'grid';
+            }
+        }
+
+        function linkProfile() {
+            const val = document.getElementById('memberSelect').value;
+            if(val === "") return alert("Pilih nama dulu dong bund! 😊");
+            localStorage.setItem('arisan_linked_index', val);
+            checkLinkedProfile();
+        }
+
+        function renderProfile(index) {
+            const p = membersData[index];
+            const memberNumber = (index + 1).toString().padStart(2, '0');
+            const isLunas = p.status === 'lunas';
+
+            document.getElementById('greetName').innerText = `Halo, ${p.name}!`;
+            document.getElementById('cardId').innerText = `#${memberNumber}`;
+            document.getElementById('cardName').innerText = p.name;
+            
+            const statusEl = document.getElementById('cardStatus');
+            if(isLunas) {
+                statusEl.className = 'badge-lunas';
+                statusEl.innerText = 'LUNAS ✅';
+                statusEl.style.background = '#d1fae5'; statusEl.style.color = '#065f46';
+            } else {
+                statusEl.className = 'badge-pending';
+                statusEl.innerText = 'BELUM LUNAS ⏳';
+                statusEl.style.background = '#fee2e2'; statusEl.style.color = '#991b1b';
+            }
+
+            if(p.nominal.includes('200.000')) {
+                 document.getElementById('dispArisan').innerText = "Rp 175.000";
+                 document.getElementById('dispTabungan').innerText = "Rp 25.000";
+            } else {
+                 document.getElementById('dispArisan').innerText = "Rp 200.000";
+                 document.getElementById('dispTabungan').innerText = "Rp 25.000";
+            }
+        }
+    </script>
+</body>
+</html>
