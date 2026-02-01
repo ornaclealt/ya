@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin Panel - Arisan UGM (Super Control)</title>
+    <title>Admin Panel - Arisan UGM (Control Center)</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,7 +17,7 @@
             --primary: #FF4785; 
             --primary-dark: #db2777;
             --primary-soft: #FFF0F5;
-            --secondary: #6366F1; /* Indigo untuk Edit */
+            --secondary: #6366F1;
             --success: #10B981;
             --warning: #F59E0B;
             --danger: #EF4444;
@@ -65,7 +65,6 @@
         /* --- DASHBOARD --- */
         #dashboard { display: none; max-width: 600px; margin: 0 auto; padding: 20px; }
 
-        /* Header */
         .top-bar {
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
         }
@@ -86,7 +85,6 @@
         .status-off { background: #9CA3AF; }
         @keyframes pulse { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
 
-        /* CONFIG BUTTON */
         .btn-settings {
             background: white; border: 1px solid var(--border); color: var(--text);
             padding: 12px; border-radius: 14px; width: 100%; margin-bottom: 20px;
@@ -94,13 +92,11 @@
             cursor: pointer; box-shadow: var(--shadow);
         }
 
-        /* Month Selector Card */
+        /* MAIN CONTROL CARD */
         .month-card {
             background: var(--card); padding: 24px; border-radius: 24px;
-            box-shadow: var(--shadow); margin-bottom: 24px;
-            border: 1px solid white;
+            box-shadow: var(--shadow); margin-bottom: 24px; border: 1px solid white;
         }
-        
         .month-actions { display: flex; gap: 10px; margin-bottom: 20px; }
         select {
             flex: 1; padding: 14px; border-radius: 14px; border: 1px solid #E5E7EB;
@@ -112,28 +108,44 @@
             border-radius: 14px; font-size: 1.4rem; cursor: pointer; 
         }
         
-        /* Control Buttons */
+        /* Control Buttons Container */
         .control-group { display: flex; flex-direction: column; gap: 12px; }
 
-        .btn-play-arisan {
-            background: linear-gradient(135deg, #FF4785 0%, #FF8EB3 100%); 
-            color: white; border: none; border-radius: 16px;
-            font-weight: 700; padding: 18px; width: 100%; font-size: 1rem;
+        /* BUTTON STYLES (DYNAMIC) */
+        .btn-control {
+            border: none; border-radius: 16px; padding: 18px; width: 100%; font-size: 1rem;
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            cursor: pointer; box-shadow: 0 8px 20px -5px rgba(255, 71, 133, 0.4);
-            transition: transform 0.2s;
+            font-weight: 700; transition: all 0.3s ease; cursor: pointer;
         }
-        .btn-play-arisan:active { transform: scale(0.98); }
 
-        .btn-stop-arisan {
-            background: white; border: 2px solid #EF4444; color: #EF4444;
-            border-radius: 16px; font-weight: 700; padding: 16px; width: 100%;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            cursor: pointer; transition: 0.2s; font-size: 0.95rem;
+        /* Style Active (Pink/Primary) */
+        .btn-active-primary {
+            background: linear-gradient(135deg, #FF4785 0%, #FF8EB3 100%);
+            color: white;
+            box-shadow: 0 8px 20px -5px rgba(255, 71, 133, 0.4);
+            transform: scale(1);
         }
-        .btn-stop-arisan:active { background: #FEF2F2; transform: scale(0.98); }
+        .btn-active-primary:active { transform: scale(0.98); }
 
-        /* Stats */
+        /* Style Active (Red/Danger) for STOP */
+        .btn-active-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%);
+            color: white;
+            box-shadow: 0 8px 20px -5px rgba(239, 68, 68, 0.4);
+            transform: scale(1);
+        }
+        .btn-active-danger:active { transform: scale(0.98); }
+
+        /* Style Inactive (Gray/Disabled look) */
+        .btn-inactive {
+            background: #F3F4F6;
+            color: #9CA3AF;
+            border: 1px solid #E5E7EB;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* SUMMARY & LIST */
         .status-summary {
             display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 24px;
         }
@@ -144,7 +156,6 @@
         .sum-num { font-size: 1.8rem; font-weight: 800; line-height: 1; margin-bottom: 5px; }
         .sum-lbl { font-size: 0.75rem; color: #9CA3AF; font-weight: 700; letter-spacing: 0.5px; }
 
-        /* Member List */
         .list-header { 
             display: flex; justify-content: space-between; align-items: center; 
             margin-bottom: 15px; padding: 0 5px;
@@ -169,9 +180,7 @@
         .m-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; }
         .m-sub { font-size: 0.75rem; color: #6B7280; }
 
-        /* Actions in List */
         .action-area { display: flex; align-items: center; gap: 8px; }
-        
         .btn-action {
             width: 34px; height: 34px; border-radius: 10px; border: none;
             display: flex; align-items: center; justify-content: center;
@@ -180,7 +189,6 @@
         .btn-edit { background: #EEF2FF; color: var(--secondary); }
         .btn-kick { background: #FEF2F2; color: var(--danger); }
 
-        /* Toggle Switch */
         .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
         .toggle-input { opacity: 0; width: 0; height: 0; }
         .toggle-slider {
@@ -195,7 +203,6 @@
         .toggle-input:checked + .toggle-slider { background-color: var(--success); }
         .toggle-input:checked + .toggle-slider:before { transform: translateX(20px); }
 
-        /* FAB */
         .fab-add {
             position: fixed; bottom: 25px; right: 25px;
             background: var(--primary); color: white; width: 60px; height: 60px;
@@ -205,27 +212,41 @@
         }
         .fab-add:active { transform: scale(0.9); }
 
-        /* --- MODAL SYSTEM (REMASTERED) --- */
+        /* --- MODAL SYSTEM --- */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 2000; display: none;
             justify-content: center; align-items: center;
-            backdrop-filter: blur(8px); /* Efek Blur Belakang */
+            backdrop-filter: blur(8px);
             opacity: 0; transition: opacity 0.3s ease;
         }
         .modal.active { display: flex; opacity: 1; }
         
         .modal-content {
-            background: white; width: 90%; max-width: 450px;
+            background: white; width: 90%; max-width: 420px;
             border-radius: 28px; padding: 30px; 
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-align: left;
+            text-align: left; position: relative; overflow: hidden;
         }
         .modal.active .modal-content { transform: scale(1); }
+        
+        /* Compact Modal for Edit */
+        #modal-edit-member .modal-content {
+            max-width: 340px; /* Lebih kecil */
+            padding: 25px;
+        }
 
-        .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 5px; color: var(--text); }
-        .modal-desc { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; }
+        .modal-center { text-align: center; }
+
+        .modal-icon-lg {
+            font-size: 3.5rem; margin-bottom: 20px; display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float { 0%, 100% {transform: translateY(0);} 50% {transform: translateY(-8px);} }
+
+        .modal-title { font-size: 1.35rem; font-weight: 800; margin-bottom: 8px; color: var(--text); }
+        .modal-desc { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; }
 
         .inp-group { margin-bottom: 18px; }
         .inp-label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: #374151; }
@@ -237,8 +258,6 @@
         .inp-field:focus { border-color: var(--primary); background: white; }
 
         .btn-row { display: flex; gap: 12px; margin-top: 10px; }
-        .btn-full { width: 100%; }
-        
         .btn-save {
             background: var(--text); color: white; padding: 16px; flex: 2;
             border-radius: 16px; border: none; font-weight: 700; font-size: 1rem; cursor: pointer;
@@ -247,13 +266,10 @@
             background: #F3F4F6; color: var(--text-muted); padding: 16px; flex: 1;
             border-radius: 16px; border: none; font-weight: 700; font-size: 1rem; cursor: pointer;
         }
-
-        /* Warning Specifics */
-        .modal-center { text-align: center; }
-        .warning-icon { font-size: 3.5rem; color: var(--warning); margin-bottom: 15px; animation: bounce 1s infinite; }
-        @keyframes bounce { 0%, 100% {transform: translateY(0);} 50% {transform: translateY(-10px);} }
         
-        .btn-confirm-play { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 16px; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 71, 133, 0.4); }
+        /* Action Specific Buttons */
+        .btn-confirm-play { background: var(--primary); color: white; width: 100%; padding: 16px; border-radius: 16px; font-weight: 700; font-size: 1rem; border:none; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 71, 133, 0.4); }
+        .btn-confirm-stop { background: var(--danger); color: white; flex: 2; padding: 16px; border-radius: 16px; font-weight: 700; border:none; cursor: pointer; box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3); }
 
     </style>
 </head>
@@ -263,8 +279,6 @@
         <div class="login-card">
             <div class="login-icon"><i class="fa-solid fa-shield-halved"></i></div>
             <h2 style="margin:0 0 10px 0;">Admin Panel</h2>
-            <p style="color:#6B7280; font-size:0.9rem; margin:0;">Kelola data arisan dan keuangan dengan mudah.</p>
-            
             <button class="btn-google" onclick="login()">
                 <i class="fa-brands fa-google"></i> Masuk dengan Google
             </button>
@@ -295,17 +309,15 @@
         <div class="month-card">
             <label class="month-label">PERIODE ARISAN</label>
             <div class="month-actions">
-                <select id="periodSelect" onchange="changePeriod()">
-                    </select>
+                <select id="periodSelect" onchange="changePeriod()"></select>
                 <button class="btn-icon btn-add-month" onclick="showAddMonthModal()" title="Tambah Periode">+</button>
             </div>
             
             <div class="control-group">
-                <button class="btn-play-arisan" onclick="validateAndPlay()">
-                    <i class="fa-solid fa-play"></i> MULAI / LANJUT KOCOK
+                <button id="btn-start" class="btn-control btn-active-primary" onclick="validateAndPlay()">
+                    <i class="fa-solid fa-play"></i> MULAI LIVE
                 </button>
-                
-                <button class="btn-stop-arisan" onclick="stopGame()">
+                <button id="btn-stop" class="btn-control btn-inactive" onclick="stopGame()">
                     <i class="fa-solid fa-stop"></i> JEDA / TUTUP SESI
                 </button>
             </div>
@@ -337,8 +349,7 @@
     <div id="modal-member" class="modal">
         <div class="modal-content">
             <h3 class="modal-title">Tambah Anggota</h3>
-            <p class="modal-desc">Pastikan nama dan nominal benar.</p>
-            
+            <p class="modal-desc">Tambah anggota baru ke periode ini.</p>
             <div class="inp-group">
                 <label class="inp-label">Nama Lengkap</label>
                 <input type="text" id="newMemName" class="inp-field" placeholder="Contoh: Mba Dina">
@@ -364,19 +375,18 @@
     <div id="modal-edit-member" class="modal">
         <div class="modal-content">
             <h3 class="modal-title">Edit Anggota</h3>
-            <p class="modal-desc">Perbarui data anggota yang salah.</p>
-            
-            <input type="hidden" id="editMemKey"> <div class="inp-group">
+            <input type="hidden" id="editMemKey">
+            <div class="inp-group" style="margin-bottom:12px;">
                 <label class="inp-label">Nama Lengkap</label>
-                <input type="text" id="editMemName" class="inp-field">
+                <input type="text" id="editMemName" class="inp-field" style="padding:12px;">
+            </div>
+            <div class="inp-group" style="margin-bottom:12px;">
+                <label class="inp-label">Keterangan</label>
+                <input type="text" id="editMemChild" class="inp-field" style="padding:12px;">
             </div>
             <div class="inp-group">
-                <label class="inp-label">Keterangan / Nama Anak</label>
-                <input type="text" id="editMemChild" class="inp-field">
-            </div>
-            <div class="inp-group">
-                <label class="inp-label">Nominal Arisan</label>
-                <select id="editMemNominal" class="inp-field">
+                <label class="inp-label">Nominal</label>
+                <select id="editMemNominal" class="inp-field" style="padding:12px;">
                     <option value="225.000">Rp 225.000</option>
                     <option value="200.000">Rp 200.000</option>
                 </select>
@@ -391,8 +401,7 @@
     <div id="modal-financial" class="modal">
         <div class="modal-content">
             <h3 class="modal-title">Pengaturan Nominal</h3>
-            <p class="modal-desc">Angka ini akan tampil di halaman depan (Index) member.</p>
-            
+            <p class="modal-desc">Angka ini akan tampil di halaman depan (Index).</p>
             <div class="inp-group">
                 <label class="inp-label">Nominal Uang Arisan (Rp)</label>
                 <input type="text" id="confArisan" class="inp-field" placeholder="200.000">
@@ -401,10 +410,33 @@
                 <label class="inp-label">Nominal Tabungan Wajib (Rp)</label>
                 <input type="text" id="confTabungan" class="inp-field" placeholder="25.000">
             </div>
-            
             <div class="btn-row">
                 <button class="btn-cancel" onclick="closeModal('modal-financial')">Batal</button>
-                <button class="btn-save" onclick="saveFinancials()">Simpan Perubahan</button>
+                <button class="btn-save" onclick="saveFinancials()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-play" class="modal">
+        <div class="modal-content modal-center">
+            <div class="modal-icon-lg" style="color:var(--primary);"><i class="fa-solid fa-rocket"></i></div>
+            <h2 class="modal-title">Mulai Arisan Live?</h2>
+            <div id="play-warning-msg" class="modal-desc">Semua anggota sudah siap. Buka akses publik?</div>
+            <button class="btn-confirm-play" onclick="proceedToGame()">
+                Buka Akses & Mulai <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button onclick="closeModal('modal-play')" style="background:none; border:none; margin-top:15px; color:#6B7280; font-weight:600; cursor:pointer;">Batal</button>
+        </div>
+    </div>
+
+    <div id="modal-stop" class="modal">
+        <div class="modal-content modal-center">
+            <div class="modal-icon-lg" style="color:var(--danger);"><i class="fa-solid fa-lock"></i></div>
+            <h2 class="modal-title">Tutup Sesi Arisan?</h2>
+            <p class="modal-desc">Halaman publik akan terkunci. Member tidak bisa melihat kocokan live lagi.</p>
+            <div class="btn-row">
+                <button class="btn-cancel" onclick="closeModal('modal-stop')">Batal</button>
+                <button class="btn-confirm-stop" onclick="confirmStopGame()">Ya, Tutup Sesi</button>
             </div>
         </div>
     </div>
@@ -412,8 +444,6 @@
     <div id="modal-month" class="modal">
         <div class="modal-content">
             <h3 class="modal-title">Buka Bulan Baru</h3>
-            <p class="modal-desc">Otomatis menyalin data anggota bulan lalu & mereset status pembayaran.</p>
-            
             <div class="inp-group">
                 <label class="inp-label">Pilih Bulan</label>
                 <select id="newMonthSelect" class="inp-field">
@@ -430,31 +460,16 @@
                 <select id="newYearSelect" class="inp-field">
                     <option value="2026">2026</option><option value="2027">2027</option>
                     <option value="2028">2028</option><option value="2029">2029</option>
-                    <option value="2030">2030</option>
                 </select>
             </div>
             <div class="btn-row">
                 <button class="btn-cancel" onclick="closeModal('modal-month')">Batal</button>
-                <button class="btn-save" onclick="createNewPeriod()">Buat Periode</button>
+                <button class="btn-save" onclick="createNewPeriod()">Buat</button>
             </div>
         </div>
     </div>
 
-    <div id="modal-play" class="modal">
-        <div class="modal-content modal-center">
-            <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <h2 style="margin-top:0; color:#1F2937;">Peringatan Pembayaran</h2>
-            <div id="play-warning-msg" class="modal-desc" style="font-size:1rem; margin-bottom:30px;"></div>
-            
-            <button class="btn-confirm-play" onclick="proceedToGame()">
-                Buka Akses & Mulai <i class="fa-solid fa-arrow-right"></i>
-            </button>
-            <button onclick="closeModal('modal-play')" style="background:none; border:none; margin-top:15px; color:#6B7280; font-weight:600; cursor:pointer;">Periksa Lagi</button>
-        </div>
-    </div>
-
     <script>
-        // CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyB8rMfcf-jSO8t8T145m6vnZQq-pFjtXjI",
             authDomain: "billy-d4379.firebaseapp.com",
@@ -478,7 +493,7 @@
         let globalUnpaidCount = 0; 
         let isAppLive = false;
 
-        // --- GLOBAL: CLICK OUTSIDE TO CLOSE ---
+        // --- GLOBAL: CLICK OUTSIDE CLOSE ---
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 event.target.classList.remove('active');
@@ -515,7 +530,7 @@
             listenToAppStatus();
         }
 
-        // --- MONITOR STATUS ---
+        // --- MONITOR STATUS (DYNAMIC BUTTONS) ---
         function listenToAppStatus() {
             db.ref('appStatus').on('value', snap => {
                 const status = snap.val() || { live: false, period: '' };
@@ -523,15 +538,37 @@
                 
                 const dot = document.getElementById('public-status-dot');
                 const text = document.getElementById('public-status-text');
+                const btnStart = document.getElementById('btn-start');
+                const btnStop = document.getElementById('btn-stop');
 
                 if(isAppLive) {
+                    // MODE LIVE (SEDANG BERJALAN)
                     dot.className = 'status-dot status-on';
                     text.innerText = "🟢 SEDANG LIVE";
                     text.style.color = "#10B981";
+
+                    // Tombol Start Mati (Abu)
+                    btnStart.className = "btn-control btn-inactive";
+                    btnStart.innerHTML = `<i class="fa-solid fa-check"></i> LIVE BERJALAN`;
+                    btnStart.disabled = true;
+
+                    // Tombol Stop Nyala (Merah)
+                    btnStop.className = "btn-control btn-active-danger";
+                    btnStop.disabled = false;
                 } else {
+                    // MODE OFFLINE (BELUM MULAI)
                     dot.className = 'status-dot status-off';
                     text.innerText = "🔴 TERTUTUP (OFFLINE)";
                     text.style.color = "#6B7280";
+
+                    // Tombol Start Nyala (Pink)
+                    btnStart.className = "btn-control btn-active-primary";
+                    btnStart.innerHTML = `<i class="fa-solid fa-play"></i> MULAI LIVE`;
+                    btnStart.disabled = false;
+
+                    // Tombol Stop Mati (Abu)
+                    btnStop.className = "btn-control btn-inactive";
+                    btnStop.disabled = true;
                 }
             });
         }
@@ -644,7 +681,7 @@
             }
         }
 
-        // --- NEW: EDIT MEMBER FEATURE ---
+        // --- EDIT MEMBER ---
         function openEditModal(key, name, child, nominal) {
             document.getElementById('editMemKey').value = key;
             document.getElementById('editMemName').value = name;
@@ -670,7 +707,7 @@
             });
         }
 
-        // --- NEW: FINANCIAL SETTINGS (CUSTOM INDEX) ---
+        // --- FINANCIAL SETTINGS ---
         function openFinancialModal() {
             db.ref('appSettings/financials').once('value', snap => {
                 const data = snap.val() || { arisan: "200.000", tabungan: "25.000" };
@@ -688,21 +725,33 @@
                 arisan: arisan,
                 tabungan: tabungan
             }).then(() => {
-                alert("Nominal berhasil diperbarui!");
                 closeModal('modal-financial');
             });
         }
 
-        // --- PLAY CONTROL ---
+        // --- START / STOP LOGIC ---
         function validateAndPlay() {
+            if (isAppLive) return; // Prevent clicking if already live
+
+            const modalTitle = document.querySelector('#modal-play .modal-title');
+            const modalDesc = document.getElementById('play-warning-msg');
+            const modalIcon = document.querySelector('#modal-play .modal-icon-lg');
+
             if (globalUnpaidCount > 0) {
                 const periodName = formatPeriodName(currentPeriod);
-                const msg = `Masih ada <b style="color:#EF4444;">${globalUnpaidCount}</b> anggota <b>BELUM BAYAR</b> di periode ${periodName}.<br>Yakin ingin LIVE?`;
-                document.getElementById('play-warning-msg').innerHTML = msg;
-                document.getElementById('modal-play').classList.add('active');
+                modalTitle.innerText = "Peringatan Pembayaran!";
+                modalTitle.style.color = "#1F2937";
+                modalDesc.innerHTML = `Ada <b style="color:var(--danger)">${globalUnpaidCount}</b> anggota belum bayar di <b>${periodName}</b>.<br>Yakin ingin tetap LIVE?`;
+                modalIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                modalIcon.style.color = "var(--warning)";
             } else {
-                if(confirm("Semua lunas. Buka akses publik dan mulai kocokan?")) proceedToGame();
+                modalTitle.innerText = "Mulai Arisan Live?";
+                modalTitle.style.color = "#1F2937";
+                modalDesc.innerText = "Semua anggota sudah lunas. Buka akses publik sekarang?";
+                modalIcon.innerHTML = '<i class="fa-solid fa-rocket"></i>';
+                modalIcon.style.color = "var(--primary)";
             }
+            document.getElementById('modal-play').classList.add('active');
         }
 
         function proceedToGame() {
@@ -712,10 +761,13 @@
         }
 
         function stopGame() {
-            if(!isAppLive) return alert("Status sudah tertutup (OFFLINE).");
-            if(confirm("TUTUP sesi arisan sekarang?\nPublik akan kembali melihat layar tunggu.")) {
-                db.ref('appStatus').update({ live: false });
-            }
+            if(!isAppLive) return; // Prevent clicking if already offline
+            document.getElementById('modal-stop').classList.add('active');
+        }
+
+        function confirmStopGame() {
+            db.ref('appStatus').update({ live: false });
+            closeModal('modal-stop');
         }
 
         // --- ADD DATA ---
@@ -767,34 +819,7 @@
         function showAddMonthModal() { document.getElementById('modal-month').classList.add('active'); }
         function showAddMemberModal() { document.getElementById('modal-member').classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        
-        // --- LOAD FINANCIALS (DARI ADMIN) ---
-        function loadFinancials() {
-            // Mengambil data dari path yang sama dengan tempat Admin menyimpan
-            db.ref('appSettings/financials').on('value', (snapshot) => {
-                const data = snapshot.val();
-                
-                // Jika data ada, update tampilan
-                if (data) {
-                    // Format angka agar rapi (opsional, tapi disarankan)
-                    // Jika admin input "200.000", langsung tampilkan.
-                    // Jika mau aman, pastikan formatnya string "Rp ..."
-                    
-                    // Cek apakah input admin sudah ada "Rp" atau belum
-                    const arisanText = data.arisan.toString().includes('Rp') ? data.arisan : 'Rp ' + data.arisan;
-                    const tabunganText = data.tabungan.toString().includes('Rp') ? data.tabungan : 'Rp ' + data.tabungan;
 
-                    document.getElementById('displayArisan').innerText = arisanText;
-                    document.getElementById('displayTabungan').innerText = tabunganText;
-                }
-            });
-        }
-
-        // --- UPDATE BAGIAN INIT ---
-        document.addEventListener("DOMContentLoaded", () => {
-            refreshData(); 
-            loadFinancials(); // <--- Panggil fungsi ini agar otomatis jalan
-        });
     </script>
 </body>
 </html>
